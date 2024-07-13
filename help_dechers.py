@@ -1,5 +1,5 @@
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 # 랭체인관련 모듈들을 import
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
