@@ -3,3 +3,4 @@ langchain-openai
 langchainhub
 langchain-community==0.0.19
 streamlit==1.33.0
+openpyxl
