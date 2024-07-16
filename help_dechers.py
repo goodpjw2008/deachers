@@ -13,6 +13,8 @@ from langchain.callbacks.base import BaseCallbackHandler
 
 # streamlit 과 기타 모듈을 import
 import streamlit as st
+import pandas as pd
+import random
 from PIL import Image
 import datetime
 
@@ -53,7 +55,7 @@ def main():
             st.markdown("##### :white_check_mark: 시험목표")
             test_objective = st.text_input('시험목표', '담임이 지켜보고 있다.', label_visibility="collapsed")
             st.markdown("##### :white_check_mark: 시험일자")
-            test_day = st.date_input('시험 시작일자', datetime.date(2024, 8, 30),label_visibility="collapsed")
+            test_day = st.date_input('시험 시작일자', datetime.date(2024, 7, 1),label_visibility="collapsed")
             st.markdown("##### :white_check_mark: 시험준비기간")
             test_prepare_day = st.slider("시험준비기간", 0, 50, 21, label_visibility="collapsed")
             st.markdown("##### :white_check_mark: 시험정보")
@@ -74,7 +76,7 @@ def main():
    
 
     # 시험 계획 버튼 클릭 시 실행
-    if st.sidebar.button(":pencil: 디처스!! 시험계획을 세워줘", type="primary"):
+    if st.sidebar.button(":pencil: 디처스!! 시험계획을 부탁해!!", type="primary"):
         query = (
             f"시험계획을 세워줘.\n"
             f"이번에 보는 시험은 {test_name} 시험이야.\n"
@@ -86,9 +88,10 @@ def main():
             f"내가 시험을 잘 볼 수 있게 시험계획을 세워줘. 목차를 아래와 같이 만들어줘."
             f"1. 시험계획명 : 계획이름은 시험목표인 {test_objective} 달성을 위한 이름으로 감동적이고 멋잇게 만들어줘. 크고 굵은 색으로 적어줘.\n"
             f"2. 시험전략 : 시험목표와 시험 정보를 분석해서 만들어줘.\n"
-            f"3. 시험준비일정: 달력 형태로 만들어서 보여줘. 달력의 형태는 월화수목금토일 형태의 달력모양으로 표형태로 만들어줘. 표안에는 다음의 예시 처럼 넣어줘. (야자1) 수학 : 세부공부내용 n(야자2) 영어 : 세부공부내용"
+            f"3. 시험준비일정: 달력 형태로 만들어서 보여줘. 달력의 형태는 월화수목금토일 형태의 달력모양으로 표형태로 만들어줘.\n"
+            f"달력의 표안에는 다음의 예시 처럼 넣어줘. 평일의 경우 (야자1) 수학 : 세부공부내용 (야자2) 영어 : 세부공부내용, 주말의 경우 (오전) 수학 : 세부공부내용 (저녁) 영어 : 세부공부내용"
         )
-        st.chat_message("human").write("성적을 부탁해 디처스~~ 시험 계획을 세워줘!!")
+        st.chat_message("human").write("성적을 부탁해 디처스~~ 시험 계획을 부탁해!!")
         with st.spinner('답변중...'):
             pg = st.empty()
             response = do_ask(query, pg, msgs)  # ChatGPT에게 물어보는 부분
@@ -96,7 +99,7 @@ def main():
             pg.empty()
 
     # 영어 본문 암기 버튼 클릭 시 실행
-    if st.sidebar.button(":baby_chick: 디처스!! 영어 본문 암기 되와줘", type="primary"):
+    if st.sidebar.button(":baby_chick: 디처스!! 영어 본문 암기 부탁해!!", type="primary"):
         file_path = 'data/eng_textbook.txt'
         # 파일을 읽어서 변수에 저장
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -105,7 +108,7 @@ def main():
             f"디처스야 영어 본문 암기 도와줘. 본문은 아래와 같아. 빈칸 넣기 문제로 객관식 1개와 주관식 1개를 만들어줘.\n\n"
             f"{eng_textbook}"
         )
-        st.chat_message("human").write("성적을 부탁해 디처스~~ 본문암기를 도와줘!!")
+        st.chat_message("human").write("성적을 부탁해 디처스~~ 본문 암기 부탁해!!!!")
         with st.spinner('답변중...'):
             pg = st.empty()
             response = do_ask(query, pg, msgs) # ChatGPT에게 물어보는 부분
@@ -113,16 +116,31 @@ def main():
             pg.empty()
 
     # 영어 워드마스터 암기 버튼 클릭 시 실행
-    if st.sidebar.button(":penguin: 디처스!! 영어 단어 암기 되와줘", type="primary"):
-        file_path = 'data/word_master.txt'
-        # 파일을 읽어서 변수에 저장
-        with open(file_path, 'r', encoding='utf-8') as file:
-            eng_textbook = file.read()
+    if st.sidebar.button(":penguin: 디처스!! 영어 단어 암기 부탁해!!", type="primary"):
+        file_path = 'data/word_master.xlsx'
+
+        # 엑셀 파일을 읽어서 데이터프레임에 저장
+        df = pd.read_excel(file_path)
+
+        # 두 컬럼을 각각 리스트로 변환
+        english_words = df.iloc[:, 0].tolist()
+        korean_meanings = df.iloc[:, 1].tolist()
+
+        # 두 컬럼을 세트로 병합
+        combined_list = list(zip(english_words, korean_meanings))
+
+        # 리스트를 랜덤하게 섞음
+        random.shuffle(combined_list)
+
+        # 섞은 리스트를 텍스트 형식으로 변환
+        eng_textbook = "\n".join([f"{word[0]}: {word[1]}" for word in combined_list])
+
         query = (
-            f"디처스야 영어 단어 암기 도와줘. 단어들은 아래와 같아. 이 단어만 암기하면 되. 다른건 물어보지 말아줘. 객관식 2문제만 내줘.\n\n"
+            f"디처스야 영어 단어 암기 도와줘. 단어들은 아래와 같아. 이 단어만 암기하면 되. 다른건 물어보지 말아줘. 객관식 2문제만 내줘. 객관식 보기는 1,2,3,4 로 해줘.\n\n"
             f"{eng_textbook}"
         )
-        st.chat_message("human").write("성적을 부탁해 디처스~~ 단어암기를 도와줘!!")
+
+        st.chat_message("human").write("성적을 부탁해 디처스~~ 단어암기를 부탁해!!")
         with st.spinner('답변중...'):
             pg = st.empty()
             response = do_ask(query, pg, msgs) # ChatGPT에게 물어보는 부분
@@ -157,7 +175,12 @@ def do_ask(user_query, container_name, msgs):
     # 프롬프트 설정(ChatGPT의 역할을 프롬프트 엔지니어링)
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", "너는 시험준비를 도와주는 친구야. 친구들의 공부를 도와줘. 친구들이 힘들때 응원을 많이 해줘. 너는 누구니라는 질문에 이렇게 답변해줘. 안녕!! 나는 디처스야. 디미고 티쳐스의 줄임 말이야. 디미고 친구들이 재미있게 공부하도록 도와 줄 수 있어. 그 외의 고민 상담도 잘 해줄 수 있어. 우리 재미있게 공부해 보자. 대화 톤은 아주 친한 친구 처럼 얘기해줘. 이모지를 많이 사용해줘."),
+            ("system", """
+             너는 시험준비를 도와주는 친구야. 친구들의 공부를 도와줘. 친구들이 힘들때 응원을 많이 해줘. 
+             너는 누구니라는 질문에 이렇게 답변해줘. 안녕!! 나는 디처스야. 디미고 티쳐스의 줄임 말이야. 
+             디미고 친구들이 재미있게 공부하도록 도와 줄 수 있어. 그 외의 고민 상담도 잘 할 수 있어. 
+             우리 재미있게 공부해 보자. 대화 톤은 아주 친한 친구 처럼 얘기해줘. 유머스럽게 얘기해줘. 이모지를 많이 사용해줘.
+             """),
             MessagesPlaceholder(variable_name="chat_history"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
             ("human", "{question}"),
